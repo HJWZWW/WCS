@@ -1,0 +1,1406 @@
+微信小程序共分为三个页面：手动模式、自动模式和设备状态
+/*************************************************************
+app.js
+*************************************************************/
+App({
+  globalData: {
+    
+    wcs: "dahaoren!!!"
+  },//这个自定义全局变量库得放在控制台输出的前面！！！
+  onLaunch: function () {//初始化函数，OBJECT参数之一
+    
+    console.log(this.globalData.wcs)//一个小测试：访问当前页面的全局变量，控制台输出
+    if (!wx.cloud) {
+      console.error('请使用 2.2.3 或以上的基础库以使用云能力')
+    } else {
+      wx.cloud.init({
+        
+        traceUser: true
+      })
+    }
+/**这里还告我们，js的if-else语句和C的语法时一样的，但是布尔类型可以用true/false代替了！！ */
+    this.globalData = {}
+  }
+})
+/************************************
+app.json
+**************************************/
+{
+  "pages": [
+    "main-photos1/photos1",
+    "pages/index/index",
+    "main/main",
+    "pages/location/location",
+    "pages/map/map",//测试页面
+    "pages/try/try",//测试页面
+    "pages/try2/try2"//测试页面
+  ],
+  "window": {
+    "backgroundColor": "#EE82EE",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#4682B4",
+    "navigationBarTitleText": "超声自动地图测绘控制系统",
+    "navigationBarTextStyle": "black"
+  },
+  "sitemapLocation": "sitemap.json",
+  "tabBar": {
+    "color": "#a9b7b7",
+    "selectedColor": "#11cd6e",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "main/main",
+        "iconPath": "/images/手指新.png",
+        "text": "手动模式"
+      },
+      {
+        "pagePath": "pages/location/location",
+        "iconPath": "/images/小车新.png",
+        "text": "自动模式"
+      },
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "/images/定位.png",
+        "text": "设备状态"
+      }
+    ]
+  },
+  "style": "v2"
+}
+/*********************
+app.wxss
+********************/
+/**app.wxss**/
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+} 
+
+button {
+  background: initial;
+}
+
+button:focus{
+  outline: 0;
+}
+
+button::after{
+  border: none;
+}
+
+
+page {
+  background: #f6f6f6;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.userinfo, .uploader, .tunnel {
+  margin-top: 40rpx;
+  height: 140rpx;
+  width: 100%;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-left: none;
+  border-right: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  transition: all 300ms ease;
+}
+
+.userinfo-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  margin: 20rpx;
+  border-radius: 50%;
+  background-size: cover;
+  background-color: white;
+}
+
+.userinfo-avatar:after {
+  border: none;
+}
+
+.userinfo-nickname {
+  font-size: 32rpx;
+  color: #007aff;
+  background-color: white;
+  background-size: cover;
+}
+
+.userinfo-nickname::after {
+  border: none;
+}
+
+.uploader, .tunnel {
+  height: auto;
+  padding: 0 0 0 40rpx;
+  flex-direction: column;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.uploader-text, .tunnel-text {
+  width: 100%;
+  line-height: 52px;
+  font-size: 34rpx;
+  color: #007aff;
+}
+
+.uploader-container {
+  width: 100%;
+  height: 400rpx;
+  padding: 20rpx 20rpx 20rpx 0;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.uploader-image {
+  width: 100%;
+  height: 360rpx;
+}
+
+.tunnel {
+  padding: 0 0 0 40rpx;
+}
+
+.tunnel-text {
+  position: relative;
+  color: #222;
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.tunnel-text:first-child {
+  border-top: none;
+}
+
+.tunnel-switch {
+  position: absolute;
+  right: 20rpx;
+  top: -2rpx;
+}
+
+.disable {
+  color: #888;
+}
+
+.service {
+  position: fixed;
+  right: 40rpx;
+  bottom: 40rpx;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: linear-gradient(#007aff, #0063ce);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  transition: all 300ms ease;
+}
+
+.service-button {
+  position: absolute;
+  top: 40rpx;
+}
+
+.service:active {
+  box-shadow: none;
+}
+
+.request-text {
+  padding: 20rpx 0;
+  font-size: 24rpx;
+  line-height: 36rpx;
+  word-break: break-all;
+}
+/***************************
+main.wxml(手动驾驶）
+**************************/
+<!--miniprogram/pages/main/main.wxml-->
+<!-- <text>miniprogram/pages/main/main.wxml</text> -->
+
+<view class="content">
+  <!--pics文件夹下的background.jpg文件-->
+  <image class='background' src="../images/beijing4.jpg" mode="aspectFill"></image>
+  <!--页面其它部分-->
+</view>
+<view style="font-size:24px;font-weight:bold;display:flex;align-items:center;justify-content:center">终端控制台</view>
+<view style="font-size:12px;display:flex;align-items:center;justify-content:center;background-color:gray;color:white">手动驾驶舱</view>
+<text style="margin:10rpx;margin-left:30rpx;font-size:15px;font-weight:bold;">产品介绍</text>
+<view>
+
+  <view style="display:flex;margin:10rpx;margin-bottom:50rpx;align-items:center;justify-content:center">
+    <swiper style="width:95%;height:163px" indicator-dots="true" indicator-active-color="blue" indicator-color="gray" autoplay="true" interval="5000" circular="true">
+    <swiper-item><image style="width:100%; height:100%" src='../images/zhinengche.jpg'></image> </swiper-item>
+    <swiper-item><image style="width:100%; height:100%" src='../images/info1111.jpg'></image> </swiper-item>
+    <swiper-item><image style="width:100%; height:100%" src='../images/info2.jpg'></image> </swiper-item>
+    </swiper>
+  </view>
+</view>
+<text style="display:flex;margin-top:50rpx;margin:10rpx;margin-left:30rpx;font-size:15px;font-weight:bold;">场景地图测绘</text>
+
+<view style="margin:10rpx;display:flex;align-items:center;justify-content:center">
+  <canvas canvas-id="myCanvas" class="canvas1" style="background-color:white;width:93%;height:300rpx"></canvas>
+</view>
+
+
+
+<view class="shang">
+  <!-- <image class='btnImg3' src='/images/resizeApi.png'></image> -->
+  <button bindtap="goon" size="mini" style="font-size:18px;font-weight:bold;width:110rpx" type="primary">↑</button>
+</view>
+
+
+
+<view style="display:flex;align-items:center;justify-content:center">
+  <view class="zuoyou">
+    <!-- <view style="zuo"> -->
+    <view class='btn1' open-type='contact'>
+      <!-- <image class='btnImg' src='/images/左.png'></image> -->
+      <button bindtap="left" size="mini" style="font-size:18px;font-weight:bold;margin-left:9rpx;" type="primary">←</button>
+    </view>
+    <!-- </view> -->
+    <view class='btn1' open-type='contact'>
+      <!-- <image class='btnImg' src='/images/左.png'></image> -->
+      <button bindtap="scaning" size="mini" style="width:180rpx;margin-top:4px;font-size:15px;font-weight:bold;background-color:red;color:white;margin:10rpx;">扫描周边</button>
+    </view>
+    <view class='btn1' open-type='contact'>
+      <!-- <image class='btnImg' src='/images/左.png'></image> -->
+      <button bindtap="stop" size="mini" style="width:120rpx;margin-top:4px;font-size:15px;font-weight:bold;background-color:red;color:white;margin:10rpx;">刹车</button>
+    </view>
+     <view class='btn1' open-type='contact'>
+      <!-- <image class='btnImg' src='/images/左.png'></image> -->
+      <button bindtap="drowmap" size="mini" style="width:180rpx;margin-top:4px;font-size:15px;font-weight:bold;background-color:red;color:white;margin:10rpx;">生成地图</button>
+    </view>
+    <!-- <view style="you"> -->
+    <view class='btn2' open-type='openSetting'>
+      <!-- <image class='btnImg2' src='/images/右.png'></image> -->
+      <button bindtap="right" size="mini" style="font-size:18px;font-weight:bold;margin-right:9rpx;" type="primary">→</button>
+    </view>
+    <!-- </view> -->
+  </view>
+</view>
+
+<view class="xia">
+  <!-- <image class='btnImg' src='/images/下.png'></image> -->
+  <button bindtap="back" size="mini" style="font-size:18px;font-weight:bold;margin:10rpx;width:110rpx" type="primary">↓</button>
+</view>
+/********************************
+main.js(手动驾驶）
+*********************************/
+const app = getApp()
+var a
+Page({
+  
+  /**
+   * 页面的初始数据
+   */
+  data: {
+    src:0,
+    position0:0,
+    position1:0,
+    position2:0,
+    position3: 0,
+    position4: 0,
+    position5: 0,
+    position6: 0,
+    position7: 0,
+    position8:0,
+    position9: 0,
+    position10: 0,
+    position11: 0,
+    position12: 0,
+    position13: 0,
+    position14: 0,
+    position15: 0
+  },
+
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad: function (options) {
+      this.ctx=wx.createCameraContext()
+      
+  },
+
+  /**
+   * 生命周期函数--监听页面初次渲染完成
+   */
+  onReady: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function () {
+
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload: function () {
+
+  },
+
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh: function () {
+
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom: function () {
+
+  },
+
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage: function () {
+
+  },
+  
+  ////////////////////////////////////////生成地图函数/////////////////////////////////////////////////////////////////////
+  drowmap:function(){
+    //获取数据，时间是刚才的时间
+    var self=this
+    console.log(a)
+    wx.request({
+
+      url: 'https://api.heclouds.com/devices/576044570/datapoints?datastream_id=distance&start='+a+'&limit=16',
+      //url: 'https://api.heclouds.com/devices/576044570/datapoints?start=2019-12-14T13:56:17&&end=2019-12-14T13:56:37',
+
+      method: 'GET',
+
+      //dataType: 'STRING',
+
+      //data: 'this is post string data',
+
+      header: { 
+        'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU=',
+        //'content-type': 'application/x-www-form-urlencoded' 
+
+      },
+
+      success: function (res) {
+        console.log(res)
+         console.log('this is post request result' + res.data)
+
+         var sleep = function(time) {
+          var startTime = new Date().getTime() + parseInt(time, 10);
+          while(new Date().getTime() < startTime) {}
+      }
+      wx.showToast({
+        title:'正在生成地图',
+        icon:'loading',
+        duration:5500
+      })
+       sleep(6000)
+        
+
+         self.setData({position0:res.data.data.datastreams[0].datapoints[0].value})
+         self.setData({position1:res.data.data.datastreams[0].datapoints[1].value})
+         self.setData({position2:res.data.data.datastreams[0].datapoints[2].value})
+         self.setData({position3:res.data.data.datastreams[0].datapoints[3].value})
+         self.setData({position4:res.data.data.datastreams[0].datapoints[4].value})
+         self.setData({position5:res.data.data.datastreams[0].datapoints[5].value})
+         self.setData({position6:res.data.data.datastreams[0].datapoints[6].value})
+         self.setData({position7:res.data.data.datastreams[0].datapoints[7].value})
+         self.setData({position8:res.data.data.datastreams[0].datapoints[8].value})
+         self.setData({position9:res.data.data.datastreams[0].datapoints[9].value})
+         self.setData({position10:res.data.data.datastreams[0].datapoints[10].value})
+         self.setData({position11:res.data.data.datastreams[0].datapoints[11].value})
+         self.setData({position12:res.data.data.datastreams[0].datapoints[12].value})
+         self.setData({position13:res.data.data.datastreams[0].datapoints[13].value})
+         self.setData({position14:res.data.data.datastreams[0].datapoints[14].value})
+         self.setData({position15:res.data.data.datastreams[0].datapoints[15].value})
+
+      },
+
+      })     
+    
+    const ctx = wx.createCanvasContext('myCanvas')
+
+    var sleep = function(time) {
+      var startTime = new Date().getTime() + parseInt(time, 10);
+      while(new Date().getTime() < startTime) {}
+  }
+    var p0=this.data.position0
+    var p1 = this.data.position1
+    var p2 = this.data.position2
+    var p3 = this.data.position3
+    var p4 = this.data.position4
+    var p5 = this.data.position5
+    var p6 = this.data.position6
+    var p7 = this.data.position7
+    var p8 = this.data.position8
+    var p9 = this.data.position9
+    var p10 = this.data.position10
+    var p11 = this.data.position11
+    var p12 = this.data.position12
+    var p13 = this.data.position13
+    var p14 = this.data.position14
+    var p15 = this.data.position15
+    var d0 = p0+p8
+    var d1=p1+9
+    var d2=p2+p10
+    var d3=p3+p11
+    var d4=p4+p12
+    var d5=p5+p13
+    var d6=p6+p14
+    var d7=p7+p15
+    var dmax1
+    var dmax2
+    var r
+    var smalldiv
+    const bigdiv=320/140
+    dmax1 = Math.max(p0, p1 * Math.cos(1 * 0.393),p8, p2 * Math.cos(2 * 0.393),p3 * Math.cos(3 * 0.393), p4 * Math.cos(4 * 0.393),p5 * Math.cos(3 * 0.393), p6 * Math.cos(2 * 0.393), p7 * Math.cos(1 * 0.393),p8,p9 * Math.cos(1 * 0.393),p10 * Math.cos(2 * 0.393),p11 * Math.cos(3 * 0.393),p12 * Math.cos(4 * 0.393),p13 * Math.cos(3 * 0.393),p14 * Math.cos(2 * 0.393),p15 * Math.cos(1 * 0.393))
+    dmax2 = Math.max(p0, p1 * Math.sin(1 * 0.393), p8, p2 * Math.sin(2 * 0.393), p3 * Math.sin(3 * 0.393), p4 * Math.sin(4 * 0.393), p5 * Math.sin(3 * 0.393), p6 * Math.sin(2 * 0.393), p7 * Math.sin(1 * 0.393), p8, p9 * Math.sin(1 * 0.393), p10 * Math.sin(2 * 0.393), p11 * Math.sin(3 * 0.393), p12 * Math.sin(4 * 0.393), p13 * Math.sin(3 * 0.393), p14 * Math.sin(2 * 0.393), p15 * Math.sin(1 * 0.393))
+    smalldiv=dmax1/dmax2
+    if(smalldiv>bigdiv){
+      r=310/(2*dmax1)
+    }
+    else{
+      r=130/(2*dmax2)
+    }
+    ctx.rect(160 - p0, 70, 3, 3)
+    ctx.beginPath()
+    ctx.moveTo(160 - r*p0, 70,)
+    ctx.lineTo(160 - r*p1 * Math.cos(0.393), 70 - r*p1 * Math.sin(0.393))
+    ctx.lineTo(160 - r*p2 * Math.cos(2*0.393), 70 - r*p2 * Math.sin(2*0.393))
+    ctx.lineTo(160 - r*p3 * Math.cos(3*0.393), 70 - r*p3 * Math.sin(3*0.393))
+    ctx.lineTo(160 - r*p4 * Math.cos(4*0.393), 70 - r*p4 * Math.sin(4*0.393))
+    ctx.lineTo(160 - r*p5 * Math.cos(5*0.393), 70 - r*p5 * Math.sin(5*0.393))
+    ctx.lineTo(160 - r*p6 * Math.cos(6*0.393), 70 - r*p6 * Math.sin(6*0.393))
+    ctx.lineTo(160 - r*p7 * Math.cos(7*0.393), 70 - r*p7 * Math.sin(7*0.393))
+    ctx.lineTo(160 - r*p8 * Math.cos(8*0.393), 70 - r*p8 * Math.sin(8*0.393))
+    ctx.lineTo(160 - r*p9 * Math.cos(9*0.393), 70 - r*p9 * Math.sin(9*0.393))
+    ctx.lineTo(160 - r*p10 * Math.cos(10*0.393), 70 - r*p10 * Math.sin(10*0.393))
+    ctx.lineTo(160 - r*p11 * Math.cos(11*0.393), 70 - r*p11 * Math.sin(11*0.393))
+    ctx.lineTo(160 - r*p12 * Math.cos(12*0.393), 70 - r*p12 * Math.sin(12*0.393))
+    ctx.lineTo(160 - r*p13 * Math.cos(13*0.393), 70 - r*p13 * Math.sin(13*0.393))
+    ctx.lineTo(160 - r*p14 * Math.cos(14 * 0.393), 70 - r*p14 * Math.sin(14 * 0.393))
+    ctx.lineTo(160 - r*p15 * Math.cos(15 * 0.393), 70 - r*p15 * Math.sin(15 * 0.393))
+    ctx.closePath()
+    //ctx.reet(160,70,2.5,2.5)
+  ctx.stroke()
+    ctx.setFillStyle('orange')
+   ctx.fill()
+  
+    ctx.draw()
+
+  },
+
+  scaning:function(){
+    wx.showToast({
+      title:'扫描中，请稍候',
+      icon:'loading',
+      duration:48000
+    })
+    var myDate = new Date()
+    var self=this
+    console.log('发送命令,创建设备')
+
+
+    function dateFormat(fmt, date) {
+      let ret;
+      let opt = {
+          "Y+": date.getFullYear().toString(),        // 年
+          "m+": (date.getMonth() + 1).toString(),     // 月
+          "d+": date.getDate().toString(),            // 日
+          "H+": date.getHours().toString(),           // 时
+          "M+": date.getMinutes().toString(),         // 分
+          "S+": date.getSeconds().toString()        // 秒
+          // 有其他格式化字符需求可以继续添加，必须转化成字符串
+      };
+      for (let k in opt) {
+          ret = new RegExp("(" + k + ")").exec(fmt);
+          if (ret) {
+              fmt = fmt.replace(ret[1], (ret[1].length == 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, "0")))
+          };
+      };
+      return fmt;
+  }
+  let date = new Date()
+  a=(dateFormat("YYYY-mm-dd", date)+'T'+dateFormat("HH:MM:SS", date))
+  console.log(a)
+
+
+    var sleep = function(time) {
+      var startTime = new Date().getTime() + parseInt(time, 10);
+      while(new Date().getTime() < startTime) {}
+  }
+  
+  wx.request({
+    url:'https://api.heclouds.com/cmds?device_id=576044570',
+    method: 'POST',
+    header: {
+      'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='
+    },
+    data: 'distance:2',
+    success: function (res) {
+      console.log('这里这里！！！！！！！！！！！！！！！')
+      console.log(res.data)}
+  
+  })
+    
+    sleep(3000) },
+      
+  goon:function(){
+    wx.request({
+      url:'https://api.heclouds.com/cmds?device_id=576044570',
+      method:'POST',
+      header:{
+        'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='
+      },
+      data: 'move:3',
+    success: function (res) {
+      console.log('前进。。。')
+      console.log(res.data)}
+    })
+  },
+  left:function(){
+    wx.request({
+      url:'https://api.heclouds.com/cmds?device_id=576044570',
+      method:'POST',
+      header:{
+        'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='
+      },
+      data: 'move:4',
+    success: function (res) {
+      console.log('左转。。。')
+      console.log(res.data)}
+    })
+  },
+  right:function(){
+    wx.request({
+      url:'https://api.heclouds.com/cmds?device_id=576044570',
+      method:'POST',
+      header:{
+        'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='
+      },
+      data: 'move:5',
+    success: function (res) {
+      console.log('右转。。。')
+      console.log(res.data)}
+    })
+  },
+  stop:function(){
+    wx.request({
+      url:'https://api.heclouds.com/cmds?device_id=576044570',
+      method:'POST',
+      header:{
+        'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='
+      },
+      data: 'move:7',
+    success: function (res) {
+      console.log('刹车。。。')
+      console.log(res.data)}
+    })
+  },
+  back:function(){
+    wx.request({
+      url:'https://api.heclouds.com/cmds?device_id=576044570',
+      method:'POST',
+      header:{
+        'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='
+      },
+      data: 'move:6',
+      success: function (res) {
+        console.log('后退。。。')
+        console.log(res.data)}
+    })
+  }
+})
+/**************************************
+main.wxss(手动驾驶）
+*************************************/
+/* miniprogram/pages/main/main.wxss */
+page{
+  height:100%;
+}
+.background {
+  width: 100%;
+  height: 100%;
+  position:fixed; 
+  background-size:100% 100%;
+  z-index: -1;
+}
+.canvas1{
+  width:95%;
+  border:1rpx solid;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+
+/* .btn1{
+  width: 70rpx;
+  height: 70rpx;
+  background-color: rgba(255, 0, 0, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+} */
+
+/* .btnImg {
+  width: 50rpx;
+  height: 50rpx;
+  border:1px solid black;
+  
+}
+
+.btnImg2 {
+  width: 31rpx;
+  height: 40rpx;
+  border:1px solid black;
+}
+.btnImg3 {
+  width: 50rpx;
+  height: 50rpx;
+  border:1px solid black;
+} */
+/* .btn1::after {
+  border: 0; 
+}
+
+ .btn2 {
+  width: 70rpx;
+  height: 70rpx;
+  background-color: rgba(126, 21, 21, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+ }
+
+ .btn2::after {
+  border: 0; 
+} */
+
+.zuoyou{
+margin-top:14rpx;
+  width:400rpx;
+  height:70rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex-wrap: nowrap;
+  /* border:1px solid black; */
+  
+}
+.shang{
+margin-top:20rpx;
+height:50rpx;
+display:flex;align-items:center;justify-content:center;
+/* border:1px solid black; */
+}
+
+.xia{
+  margin-top: 24rpx;
+height:50rpx;
+display:flex;align-items:center;justify-content:center;
+/* border:1px solid black; */
+}
+/****************************************
+location.wxml(自动驾驶)
+******************************************/
+<!--miniprogram/pages/location.wxml-->
+<!--miniprogram/pages/main/main.wxml-->
+<!-- <text>miniprogram/pages/main/main.wxml</text> -->
+<view class="content">
+  <!--pics文件夹下的background.jpg文件-->
+  <image class='background' src="../../images/beijing4.jpg" mode="aspectFill"></image>
+  <!--页面其它部分-->
+</view>
+<view style="font-size:24px;font-weight:bold;display:flex;align-items:center;justify-content:center">终端控制台</view>
+<view style="font-size:12px;display:flex;align-items:center;justify-content:center;background-color:gray;color:white">自动驾驶舱</view>
+
+
+<view style="display:flex;flex-wrap:nowrap;margin:5rpx;">
+<switch bindchange="openauto"/><view wx:if='{{openword1==""}}' style="margin:5rpx;">{{openword1}}自动驾驶模式{{openword3}}</view>
+<view wx:if='{{openword1=="开启"}}' style="color:gray;margin:5rpx;">{{openword1}}自动驾驶模式{{openword3}}</view>
+</view>
+
+
+<view style="margin:10rpx;margin-left:30rpx;font-size:15px;font-weight:bold;">自动模式介绍</view>
+<view>
+
+  <view style="display:flex;margin:10rpx;margin-bottom:50rpx;align-items:center;justify-content:center">
+    <swiper style="width:95%;height:163px" indicator-dots="true" indicator-active-color="blue" indicator-color="gray" autoplay="true" interval="5000" circular="true">
+    <swiper-item><image style="width:100%; height:100%" src='../../images/zhinengche.jpg'></image> </swiper-item>
+    <swiper-item><image style="width:100%; height:100%" src='../../images/bupt.jpg'></image> </swiper-item>
+    <swiper-item><image style="width:100%; height:100%" src='../../images/jingyu.jpg'></image> </swiper-item>
+    </swiper>
+  </view>
+
+
+
+
+<image wx:if="{{src}}" mode="widthFix" src="{{src}}"></image>
+</view>
+<text style="margin:10rpx;margin-left:30rpx;font-size:15px;font-weight:bold;">场景地图测绘（自动更新）</text>
+
+<view  style="margin:10rpx;display:flex;align-items:center;justify-content:center">
+    <canvas canvas-id="myCanvas" class="canvas1" style="background-color:white;width:93%;height:300rpx"></canvas>
+</view>
+
+
+<!-- <view class="shang">
+
+  <button size="mini" style="font-size:18px;font-weight:bold;" type="primary">↑</button>
+</view> -->
+
+
+
+<view style="display:flex;align-items:center;justify-content:center">
+    <view class="zuoyou">
+      <!-- <view style="zuo"> -->
+        <view class='btn1' open-type='contact' hidden="true">    
+          <!-- <image class='btnImg' src='/images/左.png'></image> -->
+          <button size="mini" style="font-size:18px;font-weight:bold;" type="primary">←</button>
+        </view>   
+      <!-- </view> -->
+      <view class='btn1' open-type='contact'>    
+          <!-- <image class='btnImg' src='/images/左.png'></image> -->
+          <button bindtap="shache" size="mini" style="margin-top:4px;font-size:14px;font-weight:bold;background-color:red;color:white;" >紧急刹车</button>
+        </view> 
+        <view class='btn1' open-type='contact'>    
+          <!-- <image class='btnImg' src='/images/左.png'></image> -->
+          <button bindtap="move" size="mini" style="margin-top:4px;font-size:14px;font-weight:bold;background-color:green;color:white;" >继续运行</button>
+        </view> 
+      <!-- <view style="you"> -->
+        <view class='btn2' open-type='openSetting'hidden="true"> 
+          <!-- <image class='btnImg2' src='/images/右.png'></image> -->
+          <button size="mini" style="font-size:18px;font-weight:bold;" type="primary">→</button>
+        </view>
+      <!-- </view> -->
+    </view>
+</view>
+
+<!-- <view class="xia">
+  <button size="mini" style="font-size:18px;font-weight:bold;"  type="primary">↓</button>
+</view> -->
+/**************************************
+location.js（自动驾驶）
+**************************************/
+
+Page({
+
+  /**
+   * 页面的初始数据
+   */
+  data: {
+    src: 0,
+    openword1:"开启",
+    openword2: "",
+    openword3: "",
+    openword4: "(已开启)"
+  },
+
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad: function (options) {
+    this.ctx = wx.createCameraContext()
+  },
+
+  /**
+   * 生命周期函数--监听页面初次渲染完成
+   */
+  onReady: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function () {
+  },
+
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload: function () {
+
+  },
+
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh: function () {
+
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom: function () {
+
+  },
+
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage: function () {
+
+  },
+  openauto:function(e){
+    console.log(e.detail.value)
+    if(e.detail.value==true){
+      wx.showToast({
+        title: '已开启自动驾驶模式',
+        icon:'success'
+
+      })
+      this.setData({openword1:""})
+      this.setData({openword3: "(已开启)" })
+      wx.request({
+        url:'https://api.heclouds.com/cmds?device_id=576044570',
+        method:'POST',
+        header:{'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='},
+        data:'auto:10',
+        success: function (res) {
+          console.log('关闭自动驾驶')
+          console.log(res.data)
+      }
+    })}
+    else{
+      wx.showToast({
+        title: '自动驾驶模式已关闭',
+        icon: 'none'
+      })
+      this.setData({ openword1: "开启" })
+      this.setData({ openword3: "" })
+
+      wx.request({
+        url:'https://api.heclouds.com/cmds?device_id=576044570',
+        method:'POST',
+        header:{'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='},
+        data:'move:7',
+        success: function (res) {
+          console.log('开启自动驾驶')
+          console.log(res.data)
+      }
+    })
+    }
+    }
+  ,
+
+  shache:function(){
+    wx.request({
+      url:'https://api.heclouds.com/cmds?device_id=576044570',
+      method:'POST',
+      header:{'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='},
+      data:'move:7',
+      success: function (res) {
+        console.log('紧急刹车')
+        console.log(res.data)
+    }
+  })},
+  move:function(){
+    wx.request({
+      url:'https://api.heclouds.com/cmds?device_id=576044570',
+      method:'POST',
+      header:{'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='},
+      data:'auto:10',
+      success: function (res) {
+        console.log('继续运行')
+        console.log(res.data)
+    }
+  })
+  }
+
+})
+var picsrc = this.data.src
+wx.setStorage({
+  key: 'picsrc',
+  data: picsrc
+})
+
+/**************************************
+location.wxss(自动驾驶)
+*************************************/
+
+/* miniprogram/pages/main/main.wxss */
+page{
+  height:100%;
+}
+.background {
+  width: 100%;
+  height: 100%;
+  position:fixed; 
+  background-size:100% 100%;
+  z-index: -1;
+}
+.canvas1{
+  width:95%;
+  border:1rpx solid;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+
+/* .btn1{
+  width: 70rpx;
+  height: 70rpx;
+  background-color: rgba(255, 0, 0, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+} */
+
+/* .btnImg {
+  width: 50rpx;
+  height: 50rpx;
+  border:1px solid black;
+  
+}
+
+.btnImg2 {
+  width: 31rpx;
+  height: 40rpx;
+  border:1px solid black;
+}
+.btnImg3 {
+  width: 50rpx;
+  height: 50rpx;
+  border:1px solid black;
+} */
+/* .btn1::after {
+  border: 0; 
+}
+
+ .btn2 {
+  width: 70rpx;
+  height: 70rpx;
+  background-color: rgba(126, 21, 21, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+ }
+
+ .btn2::after {
+  border: 0; 
+} */
+
+.zuoyou{
+margin-top:14rpx;
+  width:400rpx;
+  height:70rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex-wrap: nowrap;
+  /* border:1px solid black; */
+  
+}
+.shang{
+  margin-top:20rpx;
+height:50rpx;
+display:flex;align-items:center;justify-content:center;
+/* border:1px solid black; */
+}
+
+.xia{
+  margin-top: 24rpx;
+height:50rpx;
+display:flex;align-items:center;justify-content:center;
+/* border:1px solid black; */
+}
+/*****************************************************
+index.wxml(设备状态)
+********************************************************/
+
+<!-- <view>
+  测绘车当前地理位置
+</view>
+<view style="display:flex;align-items:center;justify-content:center">
+  <map longitude="{{jingdu}}" latitude="{{weidu}}" scale="{{size}}" style="width:95%;height:163px;margin:19rpx"></map>
+</view>
+
+<view class="shang">
+  <! <image class='btnImg3' src='/images/resizeApi.png'></image> -->
+  <!-- <button bindtap="benouth" size="mini" style="font-size:18px;font-weight:bold;" type="primary">↑</button>
+</view>
+<view style="display:flex;align-items:center;justify-content:center">
+    <view class="zuoyou">
+      <! <view style="zuo"> -->
+        <!-- <view class='btn1' open-type='contact'>     -->
+          <!-- <image class='btnImg' src='/images/左.png'></image> -->
+          <!-- <button bindtap="bewest" size="mini" style="font-size:18px;font-weight:bold;" type="primary">←</button>
+        </view>    --> 
+      <!-- </view> -->
+      <!-- <view class='btn1' open-type='contact'>     -->
+          <!-- <image class='btnImg' src='/images/左.png'></image> -->
+          <!-- <button size="mini" bindtap="bebig" style="margin:4px;font-size:14px;font-weight:bold;background-color:red;color:white;" >+</button>
+          <button size="mini" bindtap="besmall" style="margin:4px;font-size:14px;font-weight:bold;background-color:red;color:white;" >-</button>
+        </view>  -->
+      <!-- <view style="you"> -->
+        <!-- <view class='btn2' open-type='openSetting'>  -->
+          <!-- <image class='btnImg2' src='/images/右.png'></image> -->
+          <!-- <button bindtap="beeast" size="mini" style="font-size:18px;font-weight:bold;" type="primary">→</button>
+        </view> -->
+      <!-- </view> -->
+    <!-- </view>
+</view> -->
+
+<!-- <view class="xia"> -->
+  <!-- <image class='btnsImg' src='/images/下.png'></image> -->
+  <!-- <button bindtap="besouth" size="mini" style="font-size:18px;font-weight:bold;"  type="primary">↓</button>
+</view>
+<view>经度：{{jingdu}}</view>
+<view>纬度：{{weidu}}</view> -->
+<view class="content">
+  <!--pics文件夹下的background.jpg文件-->
+  <image class='background' src="../../images/beijing4.jpg" mode="aspectFill"></image>
+  <!--页面其它部分-->
+</view>
+<view style="font-size:24px;margin:20rpx;font-weight:bold;display:flex;align-items:center;justify-content:center">设备信息与当前状态</view>
+<view style="font-size:17px;display:flex;margin-top:20rpx;margin-left:60rpx;">创建时间：{{creattime}}</view>
+<view wx:if='{{ifonline==false}}' style="color:red; font-size:17px;display:flex;margin-top:20rpx;margin-left:60rpx;">是否在线：离线</view>
+<view wx:if='{{ifonline==true}}' style="color:green;font-size:17px;display:flex;margin-top:20rpx;margin-left:60rpx;">是否在线：在线</view>
+<view style="font-size:17px;display:flex;margin-top:20rpx;margin-left:60rpx;">最后在线时间：{{lasttime}}</view>
+
+<view style="font-size:24px;font-weight:bold;display:flex;color:gray;margin-top:520rpx;align-items:center;justify-content:center">关于我们</view>
+<view style="font-size:17px;font-weight:bold;display:flex;color:gray;margin-top:20rpx;align-items:center;justify-content:center">BUPT不养爷组</view>
+<view style="font-size:17px;font-weight:bold;display:flex;color:pink;margin-top:20rpx;align-items:center;justify-content:center">更多的故事，尽在：</view>
+/*****************************************************
+index.js(设备状态)
+********************************************************/
+Page({
+
+  /**
+   * 页面的初始数据
+   */
+  data: {
+    // myBirthday: '10-18',
+    // content: 'world',
+    // array: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    // jingdu: 117,
+    // weidu: 38,
+    // size: 10, px1: 10, py1: 20, px2: 30, py2: 40, px3: 40, py3: 50, px4: 50, py4: 60, px5: 60, py5: 70, px6: 70, py6: 80, px7: 80, py7: 90, px8: 90, py8: 100, px9: 110, py9: 120
+    creattime:0,
+    ifonline:0,
+    lasttime:0,
+
+  },
+
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad: function (options) {
+    // const ctx = wx.createCanvasContext('myCanvas')
+    // ctx.beginPath()
+    // ctx.moveTo(this.data.array[1], this.data.py1)
+    // ctx.lineTo(this.data.px2, this.data.py2)
+    // ctx.lineTo(this.data.px3, this.data.array[8])
+    // ctx.lineTo(this.data.px4, this.data.py4)
+    // ctx.lineTo(this.data.px5, this.data.py5)
+    // ctx.lineTo(this.data.px6, this.data.py6)
+    // ctx.lineTo(this.data.px7, this.data.px1)
+    // ctx.lineTo(this.data.px8, this.data.px1)
+    // // ctx.lineTo(this.data.px1, this.data.px1)
+    // // ctx.lineTo(this.data.px1, this.data.px1)
+    // // ctx.lineTo(this.data.px1, this.data.px1)
+    // ctx.stroke()
+    // ctx.draw()
+
+
+    wx.request({
+      url:'https://api.heclouds.com/devices/576044570',
+      method:'GET',
+      header: { 
+        'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='
+      },
+      success: function (res) {
+        console.log('设备信息 ：：：：：：：')
+        console.log(res.data)
+      that.setData({
+        creattime:res.data.data.create_time,
+        ifonline:res.data.data.online,
+        lasttime:res.data.data.last_ct
+      })
+      
+      }
+        
+    })
+
+    var that=this
+    setInterval(() => {wx.request({
+      url:'https://api.heclouds.com/devices/576044570',
+      method:'GET',
+      header: { 
+        'api-key':'kYRczHbbmFVT1F9FBvNWkpoc7eU='
+      },
+      success: function (res) {
+        console.log('设备信息 ：：：：：：：')
+        console.log(res.data)
+      that.setData({
+        creattime:res.data.data.create_time,
+        ifonline:res.data.data.online,
+        lasttime:res.data.data.last_ct
+      })
+      
+      }
+        
+    })
+
+      
+    }, 3000);
+    
+
+    
+  },
+
+  /**
+   * 生命周期函数--监听页面初次渲染完成
+   */
+  onReady: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function () {
+    console.log(this.route)
+
+  },
+
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload: function () {
+
+  },
+
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh: function () {
+
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom: function () {
+
+  },
+
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage: function (haha) {//这个函数的参数是一个对象，对象名字自己起，你起haha也没事~
+    if (haha.from === 'button') {//.后面的都是这个对象的成员属性
+      console.log(haha.target)
+    }
+    return {
+      title: '至骚不过枫哥',
+      path: '/pages/index/index'
+    }
+
+  },
+
+  lalala: function () {//lalala又是自己起的函数名，定义在button组件的bindtap里，随便起
+    console.log('该按钮被单击')
+  },
+  Birthday: function () {
+    this.setData({ myBirthday: '9-2' })
+  },
+
+
+  bebig: function () {
+    //var size = this.data.size,
+    this.setData({ size: this.data.size + 1 })
+  },
+  besmall: function () {
+    //var size = this.data.size,
+    this.setData({ size: this.data.size - 1 })
+  },
+  beeast: function () {
+    //var jingdu = this.data.jingdu,
+    this.setData({ jingdu: this.data.jingdu + 1 })
+  },
+  bewest: function () {
+    //var jingdu = this.data.jingdu,
+    this.setData({ jingdu: this.data.jingdu - 1 })
+  },
+  benouth: function () {
+    //var weidu = this.data.weidu,
+    this.setData({ weidu: this.data.weidu + 1 })
+  },
+  besouth: function () {
+    // var weidu = this.data.weidu,
+    this.setData({ weidu: this.data.weidu - 1 })
+  }
+})
+/******************************************
+index.wxss(设备信息)
+***********************************************/
+/* miniprogram/pages/map/map.wxss */
+/* .zuoyou{
+margin-top:14rpx;
+  width:400rpx;
+  height:70rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex-wrap: nowrap;
+  /* border:1px solid black; */
+  
+
+.shang{
+  margin-top:20rpx;
+height:50rpx;
+display:flex;align-items:center;justify-content:center;
+/* border:1px solid black; */
+}
+
+.xia{
+  margin-top: 24rpx;
+height:50rpx;
+display:flex;align-items:center;justify-content:center;} 
+
+
+
+
+/* miniprogram/pages/main/main.wxss */
+page{
+  height:100%;
+}
+.background {
+  width: 100%;
+  height: 100%;
+  position:fixed; 
+  background-size:100% 100%;
+  z-index: -1;
+}
+.canvas1{
+  width:95%;
+  border:1rpx solid;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+
+/* .btn1{
+  width: 70rpx;
+  height: 70rpx;
+  background-color: rgba(255, 0, 0, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+} */
+
+/* .btnImg {
+  width: 50rpx;
+  height: 50rpx;
+  border:1px solid black;
+  
+}
+
+.btnImg2 {
+  width: 31rpx;
+  height: 40rpx;
+  border:1px solid black;
+}
+.btnImg3 {
+  width: 50rpx;
+  height: 50rpx;
+  border:1px solid black;
+} */
+/* .btn1::after {
+  border: 0; 
+}
+
+ .btn2 {
+  width: 70rpx;
+  height: 70rpx;
+  background-color: rgba(126, 21, 21, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+ }
+
+ .btn2::after {
+  border: 0; 
+} */
+
+.zuoyou{
+margin-top:14rpx;
+  width:400rpx;
+  height:70rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex-wrap: nowrap;
+  /* border:1px solid black; */
+  
+}
+.shang{
+  margin-top:20rpx;
+height:50rpx;
+display:flex;align-items:center;justify-content:center;
+/* border:1px solid black; */
+}
+
+.xia{
+  margin-top: 24rpx;
+height:50rpx;
+display:flex;align-items:center;justify-content:center;
+/* border:1px solid black; */
+}
+
